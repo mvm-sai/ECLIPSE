@@ -1,16 +1,22 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signOutUser } from '@/lib/auth';
-import type { NavItem } from '@/types';
+
+interface NavItem {
+    label: string;
+    icon: string;
+    sectionId: string;
+}
 
 const navItems: NavItem[] = [
-    { label: 'Overview', href: '/dashboard', icon: '📊', active: true },
-    { label: 'Analytics', href: '/dashboard', icon: '📈' },
-    { label: 'Sources', href: '/dashboard', icon: '⚡' },
-    { label: 'Reports', href: '/dashboard', icon: '📋' },
-    { label: 'Settings', href: '/dashboard', icon: '⚙️' },
+    { label: 'Overview', icon: '📊', sectionId: 'section-overview' },
+    { label: 'Analytics', icon: '📈', sectionId: 'section-analytics' },
+    { label: 'Sources', icon: '⚡', sectionId: 'section-sources' },
+    { label: 'Reports', icon: '📋', sectionId: 'section-reports' },
+    { label: 'Settings', icon: '⚙️', sectionId: 'section-settings' },
 ];
 
 interface SidebarProps {
@@ -33,11 +39,25 @@ export default function Sidebar({
     userXp,
 }: SidebarProps) {
     const router = useRouter();
+    const [activeItem, setActiveItem] = useState('Overview');
 
     async function handleSignOut() {
-        await signOutUser();
-        router.push('/');
+        try {
+            await signOutUser();
+        } finally {
+            window.location.href = '/';
+        }
     }
+
+    const handleNavClick = useCallback((item: NavItem) => {
+        setActiveItem(item.label);
+        const el = document.getElementById(item.sectionId);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        // Close mobile sidebar after navigation
+        onClose();
+    }, [onClose]);
 
     return (
         <>
@@ -90,14 +110,14 @@ export default function Sidebar({
                 {/* Navigation */}
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                     {navItems.map((item) => (
-                        <Link
+                        <button
                             key={item.label}
-                            href={item.href}
-                            aria-current={item.active ? 'page' : undefined}
+                            onClick={() => handleNavClick(item)}
+                            aria-current={activeItem === item.label ? 'page' : undefined}
                             className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
-                transition-all duration-300
-                ${item.active
+                w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+                transition-all duration-300 text-left
+                ${activeItem === item.label
                                     ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-hover)] border border-[var(--accent-primary)]/20'
                                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] border border-transparent'
                                 }
@@ -105,7 +125,7 @@ export default function Sidebar({
                         >
                             <span className="text-lg">{item.icon}</span>
                             {item.label}
-                        </Link>
+                        </button>
                     ))}
                 </nav>
 
@@ -175,3 +195,4 @@ export default function Sidebar({
         </>
     );
 }
+

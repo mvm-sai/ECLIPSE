@@ -168,11 +168,15 @@ export async function signInAsGuest() {
 // ── Sign Out ────────────────────────────────────────────────────────
 
 export async function signOutUser() {
-    if (IS_DEMO) {
-        setDemoUser(null);
-        return;
+    // Always clear demo user just in case we are stuck in demo mode
+    setDemoUser(null);
+
+    try {
+        if (IS_DEMO) return;
+        await signOut(auth);
+    } catch (e) {
+        console.warn('Sign out error:', e);
     }
-    await signOut(auth);
 }
 
 // ── Auth State Listener ─────────────────────────────────────────────
