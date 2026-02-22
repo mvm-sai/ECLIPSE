@@ -41,12 +41,11 @@ export default function Sidebar({
     const router = useRouter();
     const [activeItem, setActiveItem] = useState('Overview');
 
-    async function handleSignOut() {
-        try {
-            await signOutUser();
-        } finally {
-            window.location.href = '/';
-        }
+    function handleSignOut() {
+        // Fire and forget the sign out network request
+        signOutUser().catch(console.error);
+        // Force the redirect instantly so the UI never hangs
+        window.location.href = '/';
     }
 
     const handleNavClick = useCallback((item: NavItem) => {
@@ -172,8 +171,9 @@ export default function Sidebar({
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={handleSignOut}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--error)]/10 hover:text-[var(--error)] transition-all duration-300 border border-transparent hover:border-[var(--error)]/20"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--error)]/10 hover:text-[var(--error)] transition-all duration-300 border border-transparent hover:border-[var(--error)]/20 relative z-50 cursor-pointer pointer-events-auto"
                     >
                         <svg
                             className="w-4 h-4"
